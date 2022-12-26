@@ -81,7 +81,7 @@ export class PgQueryUsersRepository {
       codeOrId: string,
   ): Promise<EmailConfirmationModel | null> {
     return await this.dataSource.query(`
-      SELECT user_id as "userId", confirmation_code as "confirmationCode", expiration_date as "expirationDate", is_confirmed as "isConfirmed"
+      SELECT confirmation_code as "confirmationCode", is_confirmed as "isConfirmed"
         FROM public.users
        WHERE id = '${codeOrId}' OR confirmation_code = '${codeOrId}';
     `)
@@ -96,11 +96,11 @@ export class PgQueryUsersRepository {
       `)
 
       if (!result) {
-        return null
+        return false
       }
       return true
     } catch (e) {
-      return false
+      return null
     }
   }
 

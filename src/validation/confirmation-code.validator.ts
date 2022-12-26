@@ -8,12 +8,14 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { EmailConfirmationEntity } from "../modules/super-admin/infrastructure/entity/email-confirmation.entity";
 import { PgEmailConfirmationRepository } from "../modules/super-admin/infrastructure/pg-email-confirmation.repository";
 import {PgQueryUsersRepository} from "../modules/super-admin/infrastructure/pg-query-users.repository";
+import {JwtService} from "../modules/public/auth/application/jwt.service";
 
 @ValidatorConstraint({ name: 'ConfirmationCodeValid', async: true })
 @Injectable()
 export class ConfirmationCodeValidator implements ValidatorConstraintInterface {
   constructor(
       protected queryUsersRepository: PgQueryUsersRepository,
+      protected jwtService: JwtService
   ) {}
 
   async validate(code: string) {
@@ -26,12 +28,10 @@ export class ConfirmationCodeValidator implements ValidatorConstraintInterface {
       return false;
     }
 
-    if (emailConfirmation.isConfirmed === true) {
-      return false;
-    }
+    const isConfirmed = await this.jwtService.getTokenPayload(emailConfirmation.confirmationCode)
 
-    if (emailConfirmation.expirationDate < new Date()) {
-      return false;
+    if (!isConfirmed) {
+      return false
     }
 
     return true;
